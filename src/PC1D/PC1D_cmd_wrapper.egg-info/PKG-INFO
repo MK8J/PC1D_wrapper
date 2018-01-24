@@ -1,0 +1,18 @@
+Metadata-Version: 1.1
+Name: PC1D-cmd-wrapper
+Version: 0.1.0.dev0
+Summary: A wrapper to get python control of PC1D
+Home-page: UNKNOWN
+Author: Mattias Juhl
+Author-email: mattias.juhl@gmail.com
+License: MIT
+Description-Content-Type: UNKNOWN
+Description: UNKNOWN
+Keywords: semiconductor models,silicon
+Platform: UNKNOWN
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
