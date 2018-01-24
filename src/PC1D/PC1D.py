@@ -20,7 +20,7 @@ class PC1D():
     '''
     # PC1D_exe = r"D:\ownCloud1\UNSW\Software\pc1d\pc1d5\cmd-pc1d5-2.exe"
     dir_path = os.path.join(os.path.dirname(
-        os.path.realpath(__file__)), 'files')
+        os.path.realpath(__file__)), 'Files')
     PC1D_exe = os.path.join(dir_path, 'cmd-PC1D6-2.exe')
     asc2prm = os.path.join(dir_path, 'convert_ascii_to_prm.exe')
     prm2asc = os.path.join(dir_path, 'convert_prm_to_ascii.exe')
@@ -49,13 +49,16 @@ class PC1D():
                     'Warning batch files don\'t work on linux or mac, the batch file has been removed')
                 self.BatchFile = None
 
-        print(self.dir_path)
+        # print(self.dir_path)
 
     @property
     def setQSSPCFlash(self):
         '''
-        Sets the reference spectrum as x5dflash and
-        the intensity as m_IntensityFile
+        Sets the light source to be the QSSPC x5dflash
+
+        This is done by setting the following values in the prm file:
+            1. m_SpectrumFile as x5dflash.spc
+            2. m_IntensityFile intensity as m_IntensityFile
         '''
         params = {
             'CLight::m_SpectrumFile': 'x5dflash.spc',
@@ -67,8 +70,9 @@ class PC1D():
             val.append(os.path.join(self.dir_path, v))
             if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == 'darwin':
                 val[-1] = 'z:' + val[-1]
-            else:
-                print('sys.platform', sys.platform)
+            # else:
+            #     print('sys.platform', sys.platform)
+            #     print(val[-1])
 
         self.alterPRM(lab, val)
 
@@ -112,13 +116,16 @@ class PC1D():
 
     def alterPRM(self, param, value):
         '''
-        Adjusts the PRM file to have the selected paramters
+        Adjusts the PRM file to have the selected paramters.
+
+        param is a list of parameters as found in the ascii version of the prm file. The value is the corresponding value it is to be set as.
         '''
         if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == 'darwin':
             process = subprocess.run(
                 ['wine', self.prm2asc, self.PC1D_prm, self.__temp1], stdout=subprocess.PIPE)
 
         elif sys.platform == "win32":
+
             process = subprocess.run(
                 [self.prm2asc, self.PC1D_prm, self.__temp1], stdout=subprocess.PIPE)
 
@@ -143,34 +150,38 @@ class PC1D():
             process = subprocess.run(
                 [self.asc2prm,  self.__temp2, self.PC1D_prm], stdout=subprocess.PIPE)
 
-    def PrepareBatchFile(self, header, values):
-        '''
-        A function that write to the batch file that is
-        used for batch mode in PC1D.
-
-        inputs:
-            header: (list of str, length m)
-                the header values, taken from PC1D's help files
-            values: (list of values, length m)
-                A list of values to be written to be batch file
-                one value per header name.
-
-        '''
-        with open(self.BatchFile, 'w') as f:
-            # f.write('\n')
-
-            if len(header) == 1:
-                f.write(header[0])
-
-            else:
-                f.write(header[0])
-                for i in header[1:]:
-                    f.write('\t' + i)
-
-            f.write('\n')
-
-            for i in values:
-                f.write(str(i) + '\t')
+    # def PrepareBatchFile(self, parName, values):
+    #     '''
+    #     A function that overwrites the batch file that is used for batch mode in PC1D.
+    #     It only writes a single line to the batch file.
+    #
+    #     This assumes that .prm file has had the batch file set internally.
+    #     The batch file path is set in this class, during the class initalisation.
+    #
+    #     inputs:
+    #         header: (list of str, length m)
+    #             The parameter names, taken from PC1D's help files. These form the header for the
+    #             batch file.
+    #         values: (list of values, length m)
+    #             A list of values to be written to be batch file
+    #             one value per parameter name.
+    #
+    #     '''
+    #     with open(self.BatchFile, 'w') as f:
+    #         # f.write('\n')
+    #
+    #         if len(parName) == 1:
+    #             f.write(parName[0])
+    #
+    #         else:
+    #             f.write(parName[0])
+    #             for i in parName[1:]:
+    #                 f.write('\t' + i)
+    #
+    #         f.write('\n')
+    #
+    #         for i in values:
+    #             f.write(str(i) + '\t')
 
     def run(self):
         '''
@@ -196,11 +207,16 @@ class PC1D():
 
         process.kill()
         # print(str(data_str.getvalue(), 'utf-8'))
-        try:
-            data = np.genfromtxt(data_str, delimiter='\t', names=True)
-        except:
-            print(BytesIO(output).read())
-            data = None
+
+        if data_str is not None:
+
+            try:
+                data = np.genfromtxt(data_str, delimiter='\t', names=True)
+            except:
+                print(BytesIO(output).read())
+                data = None
+        else:
+            print('nothing read')
 
         return data
 
